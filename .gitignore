@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.env
+*.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Streamlit
+.streamlit/
+
+# Dados gerados
+data/
+
+# Logs
+*.log
+
+# Sistema operacional
+.DS_Store
+Thumbs.db

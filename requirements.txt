@@ -1,0 +1,8 @@
+scikit-learn
+pandas
+pyshark
+joblib
+numpy
+matplotlib
+pyqt5
+colorama

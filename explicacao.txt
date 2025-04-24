@@ -1,0 +1,53 @@
+===============================
+EXPLICAÇÃO DO PROJETO DDoS IA
+===============================
+
+1. COMO FUNCIONA O MODELO E COMO ESTÁ ANALISANDO OS DADOS SIMULADOS
+--------------------------------------------------------------------
+O modelo foi treinado com dados que representam pacotes de rede reais, classificados como "BENIGN" (normais) ou "ATAQUES DDoS" (maliciosos).
+
+Durante o treinamento:
+- Usamos um algoritmo chamado Random Forest, que aprende padrões nos dados com base em exemplos rotulados.
+- Os dados têm colunas como:
+  - `length`: tamanho do pacote
+  - `protocol`: 1 (TCP) ou 2 (UDP)
+  - `src_ip_num`: IP de origem convertido para número
+  - `dst_ip_num`: IP de destino convertido para número
+
+📊 TABELA USADA PELO MODELO:
+| length | protocol | src_ip_num | dst_ip_num |
+|--------|----------|------------|------------|
+| 1500   |    2     | 3232235802 | 3232235778 |
+| 60     |    1     | 3232235812 | 3232235779 |
+
+O modelo é alimentado com essas colunas numéricas e retorna uma predição como "BENIGN", "DDoS-UDP", "DDoS-TCP", etc.
+
+2. COMO FUNCIONA O GERADOR DE DADOS SIMULADOS
+---------------------------------------------
+A cada segundo, o sistema gera um pacote fictício com:
+- length: tamanho aleatório (ex: 60, 500, 1500)
+- protocol: aleatório (1 = TCP, 2 = UDP)
+- src_ip: um IP gerado como "192.168.1.X"
+- dst_ip: destino fixo, por exemplo, "192.168.1.1" a "192.168.1.5"
+
+Esses IPs são convertidos para inteiros com a função:
+```python
+def ip_to_int(ip):
+    return struct.unpack("!I", socket.inet_aton(ip))[0]
+```
+
+O modelo usa apenas as versões numéricas: `src_ip_num` e `dst_ip_num`.
+
+3. COMO É FEITO O SALVAMENTO EM LOGS
+------------------------------------
+Sempre que um pacote é detectado como ataque:
+- O timestamp atual é capturado
+- Os dados do pacote e o resultado da predição são formatados
+- Uma linha é adicionada ao arquivo `logs/detections.log`
+
+Exemplo de linha no log:
+```
+[2025-04-08 22:04:05] DDoS-UDP | SRC: 192.168.1.14 DST: 192.168.1.2 LEN: 1500 PROTO: 2
+```
+
+Esse log é útil para análises posteriores e auditoria.
