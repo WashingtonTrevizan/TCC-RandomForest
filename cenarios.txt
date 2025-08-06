@@ -1,0 +1,229 @@
+🗺️ MAPEAMENTO COMPLETO DOS DOIS CENÁRIOS - SISTEMA DDoS
+==========================================================
+
+Este arquivo contém o mapeamento detalhado dos dois cenários de uso
+do sistema de detecção DDoS, permitindo execução independente e separada.
+
+🎯 VISÃO GERAL DOS CENÁRIOS
+=========================
+
+🟢 CENÁRIO 1: TREINAR MODELO COM DATASET DDoS
+🔴 CENÁRIO 2: TESTAR MODELO COM DATASET DIFERENTE
+
+🔗 DEPENDÊNCIA: Cenário 2 precisa do modelo gerado no Cenário 1
+
+═══════════════════════════════════════════════════════════════════
+
+🟢 CENÁRIO 1: TREINAMENTO DE MODELO
+==================================
+
+📋 OBJETIVO:
+Pegar dataset DDoS → Pré-processar → Treinar modelo → Salvar modelo
+
+📋 FLUXO COMPLETO:
+1️⃣ GERAR/OBTER DADOS DE TREINO
+   📄 Arquivo: experiments/gerar_trafego_treinamento.py
+   📊 Gera: data/raw/training_traffic_realistic.csv
+   🎯 Distribuição: 40% Normal, 20% UDP-Flood, 20% SYN-Flood, 20% HTTP-Flood
+   📈 Total: 100,000 amostras balanceadas
+
+2️⃣ PRÉ-PROCESSAR DADOS
+   📄 Arquivo: src/preprocessing/preprocessamento_realista.py
+   📊 Converte: raw → processed/dataset_preprocessado_realista.csv
+   🔧 Features: normalização, encoding, feature engineering
+   ⚙️ Aplica: StandardScaler, LabelEncoder
+
+3️⃣ TREINAR MODELO
+   📄 Arquivo: src/models/treinar_modelo_realista.py
+   🤖 Algoritmo: Random Forest (anti-overfitting)
+   🎛️ Parâmetros: 50 estimators, max_depth=8, class_weight='balanced'
+   💾 Salva: data/models/ddos_model_realista.pkl
+   💾 Salva: data/models/scaler_realista.joblib
+   💾 Salva: data/models/label_mapping_realista.json
+
+📊 ARQUIVOS GERADOS:
+- data/raw/training_traffic_realistic.csv       (Dataset bruto)
+- data/processed/dataset_preprocessado_realista.csv  (Dataset processado)
+- data/models/ddos_model_realista.pkl           (Modelo treinado)
+- data/models/scaler_realista.joblib            (Normalizador)
+- data/models/label_mapping_realista.json       (Mapeamento de labels)
+
+🚀 COMO EXECUTAR:
+python executar_cenario_1_treinar.py
+
+⏱️ TEMPO ESTIMADO: 2-5 minutos
+
+═══════════════════════════════════════════════════════════════════
+
+🔴 CENÁRIO 2: TESTE COM DATASET DIFERENTE
+========================================
+
+📋 OBJETIVO:
+Pegar dataset diferente → Carregar modelo → Testar → Gerar relatório
+
+📋 FLUXO COMPLETO:
+1️⃣ GERAR/OBTER DADOS DE TESTE (DIFERENTES DO TREINO)
+   📄 Arquivo: experiments/gerar_trafego_teste.py
+   📊 Gera: data/raw/test_traffic_realistic.csv
+   🎯 Distribuição: Aleatória (61% Normal, 39% ataques variados)
+   📈 Total: 50,000 amostras com distribuição realista
+
+2️⃣ CONVERTER DADOS TESTE PARA FEATURES
+   📄 Arquivo: tools/teste_definitivo.py (função convert_test_data_to_features)
+   📊 Converte: test_traffic → processed/test_features_realistic.csv
+   🔧 Aplica mesmo preprocessing do treino (compatibilidade)
+
+3️⃣ CARREGAR MODELO TREINADO
+   📄 Arquivo: tools/teste_definitivo.py (função test_model_with_realistic_data)
+   📥 Carrega: ddos_model_realista.pkl + scaler + label_mapping
+   🔍 Verifica prerequisites automaticamente
+
+4️⃣ EXECUTAR TESTE E AVALIAR
+   🎯 Faz predições no dataset de teste
+   📊 Gera métricas: accuracy, precision, recall, F1-score
+   📋 Análise detalhada por classe de ataque
+   📈 Matriz de confusão e análise de erros
+
+📊 ARQUIVOS GERADOS:
+- data/raw/test_traffic_realistic.csv           (Dataset de teste)
+- data/processed/test_features_realistic.csv    (Features de teste)
+- data/processed/teste_modelo_trafego_realista.csv  (Resultados detalhados)
+
+🚀 COMO EXECUTAR:
+python executar_cenario_2_testar.py
+
+⏱️ TEMPO ESTIMADO: 1-3 minutos
+
+⚠️ PREREQUISITO: Cenário 1 deve ter sido executado primeiro
+
+═══════════════════════════════════════════════════════════════════
+
+📁 DIFERENÇAS NOS DATASETS
+=========================
+
+🟢 DATASET TREINO (training_traffic_realistic.csv):
+   Tamanho     : 100,000 amostras
+   Distribuição: Balanceada (40% normal, 20% cada ataque)
+   Propósito   : Treinar modelo de forma equilibrada
+   Características: Padrões consistentes, distribuição controlada
+
+🔴 DATASET TESTE (test_traffic_realistic.csv):
+   Tamanho     : 50,000 amostras
+   Distribuição: Realista (61% normal, 39% ataques variados)
+   Propósito   : Testar modelo em cenário real
+   Características: Ataques sutis, distribuição natural, edge cases
+
+═══════════════════════════════════════════════════════════════════
+
+🚀 EXECUÇÃO PASSO A PASSO
+========================
+
+1️⃣ PRIMEIRO: Execute o cenário de treinamento
+   cd "c:\Users\jutre\Documents\SDN redes"
+   python executar_cenario_1_treinar.py
+   ⏳ Aguarde conclusão (modelo será salvo)
+
+2️⃣ DEPOIS: Execute o cenário de teste
+   python executar_cenario_2_testar.py
+   📊 Resultados serão exibidos automaticamente
+
+🔄 EXECUÇÃO REPETIDA:
+   • Cenário 1: Pode ser executado quantas vezes quiser (retreinamento)
+   • Cenário 2: Pode testar com diferentes datasets ou configurações
+   • Independência: Cada cenário é um script separado e autônomo
+
+═══════════════════════════════════════════════════════════════════
+
+📊 RESULTADOS ESPERADOS
+======================
+
+🟢 CENÁRIO 1 (TREINO):
+   ✅ Acurácia de treino: ~98.7%
+   ✅ Validação cruzada: F1-macro ~0.988
+   ✅ Modelo anti-overfitting configurado
+   📁 Arquivos salvos em data/models/
+
+🔴 CENÁRIO 2 (TESTE):
+   📊 Acurácia realista: ~73.3%
+   📈 Análise por classe:
+      • Benign: ~95.1% (excelente detecção tráfego normal)
+      • SYN-Flood: ~66.7% (boa detecção)
+      • UDP-Flood: ~37.1% (precisa melhorar)
+      • HTTP-Flood: ~22.5% (precisa melhorar)
+
+═══════════════════════════════════════════════════════════════════
+
+🔗 DEPENDÊNCIAS ENTRE CENÁRIOS
+=============================
+
+⚠️ CENÁRIO 2 depende do CENÁRIO 1:
+   • Modelo treinado (ddos_model_realista.pkl)
+   • Scaler treinado (scaler_realista.joblib)
+   • Mapeamento de labels (label_mapping_realista.json)
+
+✅ PODEM SER EXECUTADOS SEPARADAMENTE:
+   • Diferentes datasets (treino vs teste)
+   • Diferentes momentos (treinar hoje, testar amanhã)
+   • Diferentes máquinas (treinar servidor, testar local)
+   • Diferentes usuários (treinar admin, testar analista)
+
+═══════════════════════════════════════════════════════════════════
+
+⚠️ TROUBLESHOOTING
+=================
+
+❌ Erro: 'Modelo não encontrado'
+   ➡️ Execute cenário 1 primeiro: python executar_cenario_1_treinar.py
+
+❌ Erro: 'Arquivo não existe'
+   ➡️ Verifique se está na raiz do projeto
+   ➡️ Estrutura esperada: src/, experiments/, tools/, data/
+
+❌ Erro: 'Dependência não instalada'
+   ➡️ Execute: pip install -r requirements.txt
+   ➡️ Ative ambiente virtual: .venv\Scripts\activate
+
+❌ Erro: 'Memória insuficiente'
+   ➡️ Reduza tamanho dos datasets nos geradores
+   ➡️ Modifique variáveis n_samples nos scripts
+
+❌ Erro: 'Sem permissão'
+   ➡️ Execute como administrador
+   ➡️ Verifique permissões da pasta data/
+
+═══════════════════════════════════════════════════════════════════
+
+🎯 STATUS ATUAL DO PROJETO
+=========================
+
+🟢 Cenário 1 (Treino): ✅ COMPLETO
+   • Modelo treinado disponível
+   • Pipeline de treino validado
+   • Arquivos salvos em data/models/
+
+🔴 Cenário 2 (Teste): ✅ COMPLETO
+   • Teste realista executado
+   • Relatórios gerados
+   • Performance analisada
+
+📊 Relatórios Disponíveis:
+   • data/processed/teste_modelo_trafego_realista.csv
+   • data/reports/relatorio_completo_ddos.txt
+
+═══════════════════════════════════════════════════════════════════
+
+🎯 RESUMO EXECUTIVO
+==================
+
+🟢 CENÁRIO 1: Geração → Processamento → Treinamento → Modelo salvo
+🔴 CENÁRIO 2: Dataset diferente → Carregamento → Teste → Relatório
+🔗 CONEXÃO: Cenário 2 usa modelo gerado no Cenário 1
+⚡ STATUS: Ambos fluxos estão 100% mapeados e prontos!
+
+🏆 PROJETO PRONTO PARA EXECUÇÃO DOS DOIS CENÁRIOS!
+
+═══════════════════════════════════════════════════════════════════
+
+Autor: Sistema DDoS Detection
+Data: August 6, 2025
+Versão: 2.0 (Organizada)

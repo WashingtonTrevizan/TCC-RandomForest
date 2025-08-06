@@ -37,29 +37,22 @@ def convert_pcap_to_csv():
     )
 
     with open(CSV_PATH, 'w', newline='') as csvfile:
-        # Fields baseados no CICDDoS2019 (simplificado)
+        # Fields básicos (sem features calculadas - isso será feito depois)
         fieldnames = [
             'timestamp', 'src_ip', 'dst_ip', 'src_port', 'dst_port',
-            'protocol', 'length', 'tcp_flags', 'flow_duration'
+            'protocol', 'length', 'tcp_flags'
         ]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
-        first_pkt_time = None
         for pkt in cap:
             try:
-                # Timestamp e duração do fluxo
-                if not first_pkt_time:
-                    first_pkt_time = float(pkt.sniff_timestamp)
-                current_time = float(pkt.sniff_timestamp)
-                flow_duration = current_time - first_pkt_time
-
                 # Flags TCP (SYN, ACK, RST, etc.)
                 tcp_flags = 0
                 if hasattr(pkt, 'tcp'):
                     tcp_flags = int(pkt.tcp.flags, 16)  # Converte flags hex para int
 
-                # Escreve no CSV
+                # Escreve no CSV (apenas dados brutos)
                 writer.writerow({
                     'timestamp': pkt.sniff_time,
                     'src_ip': pkt.ip.src,
@@ -68,8 +61,7 @@ def convert_pcap_to_csv():
                     'dst_port': pkt[pkt.transport_layer].dstport if hasattr(pkt, 'transport_layer') else 0,
                     'protocol': pkt.transport_layer,
                     'length': int(pkt.length),
-                    'tcp_flags': tcp_flags,
-                    'flow_duration': flow_duration
+                    'tcp_flags': tcp_flags
                 })
 
             except AttributeError:
